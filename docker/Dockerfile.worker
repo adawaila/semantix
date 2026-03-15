@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir \
+    "numpy>=1.26" \
+    "redis>=5.0" \
+    "sentence-transformers>=2.7" \
+    "openai>=1.0" \
+    "nltk>=3.8" \
+    "tenacity>=8.2" \
+    "pydantic>=2.6"
+
+COPY core/ ./core/
+COPY embeddings/ ./embeddings/
+COPY ingestion/ ./ingestion/
+
+# Pre-download model
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" 2>/dev/null || true
+
+CMD ["python", "-m", "ingestion.worker", \
+     "--redis", "${REDIS_URL}", \
+     "--data-dir", "${DATA_DIR}", \
+     "--provider", "${EMBED_PROVIDER}", \
+     "--workers", "${WORKERS}"]

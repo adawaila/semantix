@@ -1,0 +1,76 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  semantix-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DATA_DIR: ${DATA_DIR:-/data}
+      EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - semantix_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  semantix-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    restart: unless-stopped
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DATA_DIR: ${DATA_DIR:-/data}
+      EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      WORKERS: ${WORKERS:-4}
+    volumes:
+      - semantix_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      semantix-api:
+        condition: service_healthy
+    command: >
+      python -m ingestion.worker
+      --redis redis://redis:6379
+      --data-dir /data
+      --provider ${EMBED_PROVIDER:-local}
+      --workers ${WORKERS:-4}
+
+  semantix-dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dashboard
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      semantix-api:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  semantix_data:
