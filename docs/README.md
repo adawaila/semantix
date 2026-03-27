@@ -93,22 +93,6 @@ Measured on CPU (Intel Core, n=10,000 docs, all-MiniLM-L6-v2, dim=384).
 
 ---
 
-## vs. Algolia / Typesense
-
-| Feature            | semantix     | Algolia      | Typesense    |
-|--------------------|-------------|--------------|--------------|
-| Self-hostable      | ✅ Yes       | ❌ Cloud only | ✅ Yes       |
-| BM25 search        | ✅           | ✅           | ✅           |
-| Vector search      | ✅ (HNSW)    | ✅ (paid)    | ✅           |
-| Hybrid search      | ✅ RRF       | ✅           | ✅           |
-| Open source        | ✅ MIT       | ❌           | ✅ GPL-3     |
-| Offline embedding  | ✅           | ❌           | ❌           |
-| Python SDK         | ✅           | ✅           | ✅           |
-| No ext. deps (index) | ✅ NumPy only | ❌         | ❌           |
-| Cost               | Free        | $$$          | Free/Paid    |
-
----
-
 ## API Reference
 
 ```
@@ -243,8 +227,3 @@ Atomic pickle: write to `.tmp` → `os.replace()`. Collections survive crashes c
 
 Please keep the link to vectr visible — semantix is built *on top of* vectr, not as a replacement.
 
----
-
-## License
-
-MIT
