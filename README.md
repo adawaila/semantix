@@ -70,21 +70,4 @@ Ingestion: **173 docs/sec** (embed) · **80 docs/sec** (HNSW index)
 
 ---
 
-## vs. Algolia / Typesense
-
-| Feature           | semantix  | Algolia   | Typesense |
-|-------------------|-----------|-----------|-----------|
-| Self-hostable     | ✅        | ❌        | ✅        |
-| Hybrid search     | ✅ RRF    | ✅        | ✅        |
-| Offline embedding | ✅        | ❌        | ❌        |
-| Open source       | ✅ MIT    | ❌        | ✅ GPL-3  |
-| No ext. index deps| ✅ NumPy  | ❌        | ❌        |
-| Cost              | Free      | $$$       | Free/Paid |
-
----
-
 See [`docs/README.md`](docs/README.md) for full documentation.
-
-## License
-
-MIT
