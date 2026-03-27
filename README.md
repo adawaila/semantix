@@ -70,4 +70,20 @@ Ingestion: **173 docs/sec** (embed) · **80 docs/sec** (HNSW index)
 
 ---
 
+## Design Decisions
+
+**Why RRF over weighted sum?**
+Weighted fusion requires both scores to be on the same scale. BM25 and cosine similarity are not comparable, so any fixed weight is arbitrary. RRF only uses ranks, which makes it robust without per-query calibration. k=60 is empirically optimal (Cormack et al., 2009).
+
+**Why build HNSW from scratch?**
+To understand the internals: neighbour selection heuristic, layer assignment, ef parameter tradeoffs. For production I would swap in hnswlib or FAISS. The interface in `core/vector/` is designed to make that swap trivial.
+
+**Why M=16, ef=200?**
+M controls graph connectivity vs. memory. ef controls search beam width vs. latency. At n=10k, M=16/ef=200 gives 98.4% Recall@10 at ~2ms p50. At 1M docs I would reduce M to 12 and tune ef per latency budget.
+
+**Why atomic pickle for persistence?**
+Write to `.tmp` then `os.replace()`. No external database dependency, crash-safe, zero setup. The tradeoff is that it does not scale horizontally. For multi-node deployments I would replace it with a proper store.
+
+---
+
 See [`docs/README.md`](docs/README.md) for full documentation.
